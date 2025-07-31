@@ -2,6 +2,10 @@
 
 An MCP server that powers AI agents with indexed blockchain data from [The Graph](https://thegraph.com/).
 
+<a href="https://glama.ai/mcp/servers/@kukapay/thegraph-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@kukapay/thegraph-mcp/badge" alt="TheGraph Server MCP server" />
+</a>
+
 ![GitHub License](https://img.shields.io/github/license/kukapay/thegraph-mcp) 
 ![GitHub Last Commit](https://img.shields.io/github/last-commit/kukapay/thegraph-mcp) 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
