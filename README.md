@@ -47,7 +47,7 @@ Executes GraphQL queries against a specified subgraph. While queries are typical
     ```
 3. **Get an API Key**
 
-    Sign up at [The Graph Studio](https://thegraph.com/studio/) to get a free API key.
+    Sign up at [The Graph Studio](https://thegraph.com/studio/) to get an API key (free for the first 100k queries)
 
 4. **Add the MCP Server**
 
