@@ -66,23 +66,23 @@ Here are some natural language prompts to trigger the tools:
 - "What subgraphs are available for ENS?"
 
 ### Schema Queries
-- "Show me the schema for subgraph QmZBQcF... in a readable format"
-- "What's the structure of the QmZBQcF... subgraph? Please display it in GraphQL format"
+- "Show me the schema for the Uniswap V3 Ethereum subgraph in a readable format"
+- "What entities and fields are available in the Aave V3 subgraph?"
 - "I need to understand the data model of subgraph QmZBQcF..., can you fetch its schema?"
 
 ### Data Queries
-- "Find the top 5 tokens by trading volume in the last 24 hours from subgraph QmZBQcF..."
-- "Show me all pairs with liquidity greater than 1 million USD in subgraph QmZBQcF..."
-- "Get the latest 10 swap events from the QmZBQcF... subgraph, including token symbols and amounts"
+- "Find the top 5 tokens by trading volume in the last 24 hours on Uniswap V3 Ethereum"
+- "Show me all pairs with liquidity greater than 1 million USD on Uniswap"
+- "Get the latest 10 swap events from subgraph QmZBQcF..., including token symbols and amounts"
 
 ### Analysis Tasks
-- "Analyze the trading volume of USDT pairs in the last week using subgraph QmZBQcF..."
-- "Compare the liquidity of ETH and USDC pairs in subgraph QmZBQcF..."
-- "Find unusual trading patterns in the last 24 hours from subgraph QmZBQcF..."
+- "What is the highest APR market on Aave mainnet?"
+- "Compare the liquidity of ETH and USDC pairs on Uniswap Ethereum"
+- "Find the most active lending markets on Aave by deposit volume"
 
 ### Combined Tasks
-- "First get the schema of QmZBQcF..., then help me write a query to find high-value transactions"
-- "Check the schema of QmZBQcF... and tell me what fields are available for querying token prices"
+- "Find a Uniswap subgraph on Ethereum, check its schema, then help me write a query to find high-value swaps"
+- "What data can I get from Aave on Ethereum? Show me the schema and then query the top markets by TVL"
 - "Using subgraph QmZBQcF..., analyze the market impact of large trades by first understanding the schema and then querying relevant events"
 
 ## License
