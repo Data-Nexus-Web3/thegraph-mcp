@@ -134,10 +134,16 @@ async def searchSubgraphs(searchQuery: str) -> str:
           id
           signalledTokens
           currentVersion {
+            metadata {
+              description
+            }
             subgraphDeployment {
               ipfsHash
               manifest {
                 network
+                schema {
+                  schema
+                }
               }
             }
           }
@@ -166,8 +172,10 @@ async def searchSubgraphs(searchQuery: str) -> str:
                 if not subgraph or not subgraph.get("currentVersion"):
                     continue
 
-                deployment = subgraph["currentVersion"]["subgraphDeployment"]
-                network = deployment.get("manifest", {}).get("network", "unknown") if deployment.get("manifest") else "unknown"
+                version = subgraph["currentVersion"]
+                deployment = version["subgraphDeployment"]
+                manifest = deployment.get("manifest") or {}
+                network = manifest.get("network", "unknown")
 
                 entry = {
                     "subgraphId": subgraph["id"],
@@ -178,8 +186,15 @@ async def searchSubgraphs(searchQuery: str) -> str:
                 }
 
                 desc = meta.get("description")
+                version_desc = (version.get("metadata") or {}).get("description")
                 if desc:
                     entry["description"] = desc[:150] + "..." if len(desc) > 150 else desc
+                elif version_desc:
+                    entry["description"] = version_desc[:150] + "..." if len(version_desc) > 150 else version_desc
+
+                schema = (manifest.get("schema") or {}).get("schema")
+                if schema:
+                    entry["schema"] = schema
 
                 results.append(entry)
 
