@@ -2,12 +2,12 @@
 
 An MCP server that powers AI agents with indexed blockchain data from [The Graph](https://thegraph.com/).
 
-<a href="https://glama.ai/mcp/servers/@kukapay/thegraph-mcp">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@kukapay/thegraph-mcp/badge" alt="TheGraph Server MCP server" />
+<a href="https://glama.ai/mcp/servers/@Data-Nexus-Web3/thegraph-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@Data-Nexus-Web3/thegraph-mcp/badge" alt="TheGraph Server MCP server" />
 </a>
 
-![GitHub License](https://img.shields.io/github/license/kukapay/thegraph-mcp) 
-![GitHub Last Commit](https://img.shields.io/github/last-commit/kukapay/thegraph-mcp) 
+![GitHub License](https://img.shields.io/github/license/Data-Nexus-Web3/thegraph-mcp) 
+![GitHub Last Commit](https://img.shields.io/github/last-commit/Data-Nexus-Web3/thegraph-mcp) 
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
 
 ## Available Tools
@@ -43,7 +43,7 @@ Executes GraphQL queries against a specified subgraph. While queries are typical
     ```
 2. **Clone the Repository**
     ```bash
-    git clone https://github.com/kukapay/thegraph-mcp.git
+    git clone https://github.com/Data-Nexus-Web3/thegraph-mcp.git
     ```
 3. **Client Configuration**
     ```json
