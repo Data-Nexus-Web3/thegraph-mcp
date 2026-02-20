@@ -37,11 +37,15 @@ Executes GraphQL queries against a specified subgraph. While queries are typical
 
 ## Installation
 
-1. **Clone the Repository**
+1. **Install uv** (if not already installed)
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+2. **Clone the Repository**
     ```bash
     git clone https://github.com/kukapay/thegraph-mcp.git
     ```
-2. **Client Configuration**
+3. **Client Configuration**
     ```json
     {
       "mcpServers": {
