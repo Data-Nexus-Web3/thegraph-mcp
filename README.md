@@ -13,7 +13,7 @@ An MCP server that powers AI agents with indexed blockchain data from [The Graph
 ## Available Tools
 
 ### 1. searchSubgraphs
-Searches for subgraphs on The Graph Network by name or description. Uses the Network Subgraph's full-text search to find matching subgraphs, returning a concise list sorted by signal amount (highest first).
+Searches for subgraphs on The Graph Network by name or description. Uses the Network Subgraph's full-text search to find matching subgraphs, returning a list sorted by signal amount (highest first). Results include the subgraph's GraphQL schema, so agents can go directly from discovery to querying without a separate schema fetch.
 
 **Parameters:**
 - `searchQuery`: The search term to find matching subgraphs (e.g., "uniswap", "aave", "ENS")
@@ -45,7 +45,20 @@ Executes GraphQL queries against a specified subgraph. While queries are typical
     ```bash
     git clone https://github.com/Data-Nexus-Web3/thegraph-mcp.git
     ```
-3. **Client Configuration**
+3. **Get an API Key**
+
+    Sign up at [The Graph Studio](https://thegraph.com/studio/) to get a free API key.
+
+4. **Add the MCP Server**
+
+    **Claude Code:**
+    ```bash
+    claude mcp add -e THEGRAPH_API_KEY=your_api_key_here thegraph-mcp -- uv --directory path/to/thegraph-mcp run main.py
+    ```
+
+    **Claude Desktop / Other MCP Clients:**
+
+    Add the following to your client's MCP config file (e.g. `claude_desktop_config.json`):
     ```json
     {
       "mcpServers": {
