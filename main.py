@@ -19,6 +19,18 @@ NETWORK_SUBGRAPH_ID = "DZz4kDTdmzWLWsV373w2bSmoar3umKKH9y82SUKr5qmp"
 # Retrieve API key from environment variables
 API_KEY = os.getenv("THEGRAPH_API_KEY")
 
+# Server-side schema cache: {subgraphId: {"text": str, "json": str}}
+_schema_cache = {}
+
+
+def _sanitize_error(e: Exception) -> str:
+    """Strip API key from error messages to prevent leaks."""
+    msg = str(e)
+    if API_KEY and API_KEY in msg:
+        msg = msg.replace(API_KEY, "[REDACTED]")
+    return msg
+
+
 def json_to_graphql_schema(schema_json):
     """Convert JSON schema from introspection to GraphQL text format."""
     types = schema_json["types"]
@@ -51,9 +63,17 @@ async def getSubgraphSchema(subgraphId: str, asText: bool = False) -> str:
     Returns:
         str: Schema in JSON or GraphQL text format, or an error message.
     """
+    # Check cache first
+    cached = _schema_cache.get(subgraphId)
+    if cached:
+        if asText and cached.get("text"):
+            return cached["text"]
+        if not asText and cached.get("json"):
+            return cached["json"]
+
     if not API_KEY:
         return "API key is required. Set THEGRAPH_API_KEY in your .env file."
-    
+
     async with httpx.AsyncClient() as client:
         url = f"{THEGRAPH_API_BASE_URL}{API_KEY}/subgraphs/id/{subgraphId}"
         introspection_query = """
@@ -81,13 +101,26 @@ async def getSubgraphSchema(subgraphId: str, asText: bool = False) -> str:
             response = await client.post(url, json={"query": introspection_query}, timeout=10)
             response.raise_for_status()
             schema_data = response.json()
+
+            # Fix #4: Check for GraphQL errors at HTTP 200
+            if schema_data.get("errors"):
+                return f"GraphQL error: {schema_data['errors'][0].get('message', 'Unknown error')}"
+
             if "data" in schema_data and "__schema" in schema_data["data"]:
                 schema = schema_data["data"]["__schema"]
-                return json_to_graphql_schema(schema) if asText else json.dumps(schema)
+                text_schema = json_to_graphql_schema(schema)
+                json_schema = json.dumps(schema)
+
+                # Populate cache with both formats
+                _schema_cache[subgraphId] = {"text": text_schema, "json": json_schema}
+
+                return text_schema if asText else json_schema
             else:
                 return f"Failed to fetch schema for {subgraphId}"
         except httpx.HTTPError as e:
-            return f"Error fetching schema: {str(e)}"
+            return f"Error fetching schema: {_sanitize_error(e)}"
+        except Exception as e:
+            return f"Error fetching schema: {_sanitize_error(e)}"
 
 @mcp.tool()
 async def querySubgraph(subgraphId: str, query: str) -> str:
@@ -108,9 +141,17 @@ async def querySubgraph(subgraphId: str, query: str) -> str:
         try:
             response = await client.post(url, json={"query": query}, timeout=10)
             response.raise_for_status()
-            return json.dumps(response.json())
+            data = response.json()
+
+            # Fix #4: Check for GraphQL errors at HTTP 200
+            if data.get("errors"):
+                return f"GraphQL error: {data['errors'][0].get('message', 'Unknown error')}"
+
+            return json.dumps(data)
         except httpx.HTTPError as e:
-            return f"Error executing query: {str(e)}"
+            return f"Error executing query: {_sanitize_error(e)}"
+        except Exception as e:
+            return f"Error executing query: {_sanitize_error(e)}"
 
 @mcp.tool()
 async def searchSubgraphs(searchQuery: str) -> str:
@@ -163,6 +204,10 @@ async def searchSubgraphs(searchQuery: str) -> str:
             response.raise_for_status()
             data = response.json()
 
+            # Fix #4: Check for GraphQL errors at HTTP 200
+            if data.get("errors"):
+                return f"GraphQL error: {data['errors'][0].get('message', 'Unknown error')}"
+
             search_results = (data.get("data") or {}).get("subgraphMetadataSearch")
             if not search_results:
                 return f"No subgraphs found matching '{searchQuery}'"
@@ -173,7 +218,12 @@ async def searchSubgraphs(searchQuery: str) -> str:
                 if not subgraph or not subgraph.get("currentVersion"):
                     continue
 
-                version = subgraph["currentVersion"]
+                # Fix #3: Use .get() for id; skip entry if missing
+                subgraph_id = subgraph.get("id")
+                if not subgraph_id:
+                    continue
+
+                version = subgraph.get("currentVersion")
                 deployment = version.get("subgraphDeployment")
                 if not deployment:
                     continue
@@ -181,7 +231,7 @@ async def searchSubgraphs(searchQuery: str) -> str:
                 network = manifest.get("network", "unknown")
 
                 entry = {
-                    "subgraphId": subgraph["id"],
+                    "subgraphId": subgraph_id,
                     "displayName": meta.get("displayName"),
                     "network": network,
                     "signalledTokens": subgraph.get("signalledTokens", "0"),
@@ -195,20 +245,30 @@ async def searchSubgraphs(searchQuery: str) -> str:
                 elif version_desc:
                     entry["description"] = version_desc[:150] + "..." if len(version_desc) > 150 else version_desc
 
+                # Cache schema for later getSubgraphSchema calls, but strip from response
                 schema = (manifest.get("schema") or {}).get("schema")
                 if schema:
-                    entry["schema"] = schema
+                    _schema_cache[subgraph_id] = {"text": schema, "json": None}
 
                 results.append(entry)
 
             if not results:
                 return f"Subgraphs were found matching '{searchQuery}', but none have an active deployment. Try a broader search term."
 
-            results.sort(key=lambda x: int(x["signalledTokens"]), reverse=True)
+            # Fix #5: Safe sort — handle missing or non-numeric signalledTokens
+            def _safe_signal(x):
+                try:
+                    return int(x.get("signalledTokens") or 0)
+                except (ValueError, TypeError):
+                    return 0
+
+            results.sort(key=_safe_signal, reverse=True)
 
             return json.dumps(results)
         except httpx.HTTPError as e:
-            return f"Error searching subgraphs: {str(e)}"
+            return f"Error searching subgraphs: {_sanitize_error(e)}"
+        except Exception as e:
+            return f"Error searching subgraphs: {_sanitize_error(e)}"
 
 
 if __name__ == "__main__":
