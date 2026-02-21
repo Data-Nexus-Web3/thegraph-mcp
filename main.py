@@ -163,17 +163,20 @@ async def searchSubgraphs(searchQuery: str) -> str:
             response.raise_for_status()
             data = response.json()
 
-            if "data" not in data or not data["data"].get("subgraphMetadataSearch"):
+            search_results = (data.get("data") or {}).get("subgraphMetadataSearch")
+            if not search_results:
                 return f"No subgraphs found matching '{searchQuery}'"
 
             results = []
-            for meta in data["data"]["subgraphMetadataSearch"]:
+            for meta in search_results:
                 subgraph = meta.get("subgraph")
                 if not subgraph or not subgraph.get("currentVersion"):
                     continue
 
                 version = subgraph["currentVersion"]
-                deployment = version["subgraphDeployment"]
+                deployment = version.get("subgraphDeployment")
+                if not deployment:
+                    continue
                 manifest = deployment.get("manifest") or {}
                 network = manifest.get("network", "unknown")
 
@@ -199,7 +202,7 @@ async def searchSubgraphs(searchQuery: str) -> str:
                 results.append(entry)
 
             if not results:
-                return f"No active subgraphs found matching '{searchQuery}'"
+                return f"Subgraphs were found matching '{searchQuery}', but none have an active deployment. Try a broader search term."
 
             results.sort(key=lambda x: int(x["signalledTokens"]), reverse=True)
 
